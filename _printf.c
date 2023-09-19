@@ -12,7 +12,6 @@ int _printf(const char *format, ...)
 {
 	int print_char = 0;
 	int n, buff_ind = 0;
-	int print;
 	va_list mylist;
 	char buffer[BUFFER_SIZE];
 
@@ -21,10 +20,10 @@ int _printf(const char *format, ...)
 
 	va_start(mylist, format);
 
-	for (print_char = 0; format && format[n] != '\0'; n++)
+	for (n = 0; format && format[n] != '\0'; n++)
 	{
 		if (format[n] != '%')
-	{
+		{
 			buffer[buff_ind++] = format[n];
 			if (buff_ind == BUFFER_SIZE)
 			{
@@ -39,17 +38,14 @@ int _printf(const char *format, ...)
 			n++;
 			if (format[n] == '\0')
 			{
-				va_end(mylist);
 				return (-1);
 			}
-			print = handle_print(format, &n, mylist, buffer);
 
-			if (print_char == -1)
+			if (format[n] == '%')
 			{
-				va_end(mylist);
-				return (-1);
+				buffer[buff_ind++] = format[n];
+				print_char++;
 			}
-			print_char += print;
 		}
 	}
 	print_buffer(buffer, &buff_ind);
