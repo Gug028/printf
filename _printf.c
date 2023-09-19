@@ -14,7 +14,6 @@ int _printf(const char *format, ...)
 	int printed_chars = 0;
 	int buff_ind = 0;
 	va_list mylist;
-	int i;
 	char buffer[BUFFER_SIZE];
 
 	if (format == NULL)
