@@ -1,26 +1,20 @@
 #include "main.h"
-/**
- * print_buffer - Prints contents of buffer
- * @buffer: an array
- * @buff_ind: array length
- */
-void print_buffer(char buffer[], int *buff_ind)
-{
-	if (*buff_ind > 0)
-		write(1, &buffer[0], *buff_ind);
+#include <stdio.h>
 
-	*buff_ind = 0;
-}
+void print_buffer(char buffer[], int *buff_ind);
+
 /**
- * _printf - prints output based on format
- * @format: pointer to string
- * Return: printed output
+ * _printf - Printf function
+ * @format: Format string.
+ * Return: Number of characters printed.
  */
 int _printf(const char *format, ...)
 {
-	int n, print_char = 0;
-int buff_ind = 0;
+
+	int printed_chars = 0;
+	int buff_ind = 0;
 	va_list mylist;
+	int i;
 	char buffer[BUFFER_SIZE];
 
 	if (format == NULL)
@@ -28,33 +22,44 @@ int buff_ind = 0;
 
 	va_start(mylist, format);
 
-	for (n = 0; format && format[n] != '\0'; n++)
+	for (printed_chars = 0; format && format[i] != '\0'; i++)
 	{
-		if (format[n] != '%')
+		if (format[i] != '%')
 		{
-			buffer[buff_ind++] = format[n];
+			buffer[buff_ind++] = format[i];
 			if (buff_ind == BUFFER_SIZE)
 				print_buffer(buffer, &buff_ind);
-
-			print_char++;
+			/* write(1, &format[i], 1);*/
+			printed_chars++;
 		}
 		else
 		{
 			print_buffer(buffer, &buff_ind);
-			++n;
-
-			if (format[n] == '\0')
-				return (-1);
-			if (format[n] == '%')
+			i++;
+			if (format[i] == '\0')
 			{
-				buffer[buff_ind++] = format[n];
-				print_char++;
+				va_end(mylist);
+				return (-1);
 			}
+			if (printed_chars == -1)
+				return (-1);
 		}
 	}
 	print_buffer(buffer, &buff_ind);
-
 	va_end(mylist);
+	return (printed_chars);
+}
 
-	return (print_char);
+/**
+ * print_buffer - Prints the contents of the buffer if it exists
+ * @buffer: Array of chars
+ * @buff_ind: Index at which to add the next char, represents the length.
+ */
+void print_buffer(char buffer[], int *buff_ind)
+{
+	if (*buff_ind > 0)
+	{
+		write(1, buffer, *buff_ind);
+	}
+	*buff_ind = 0;
 }
