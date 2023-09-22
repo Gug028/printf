@@ -40,7 +40,7 @@ typedef struct fmt fmt_t;
 
 int _printf(const char *format, ...);
 void print_buffer(char buffer[], int *buff_ind);
-int handle_print(const char *fmt, int *n, va_list mylist, char buffer[]);
+int handle_print(const char *fmt, int *n, va_list mylist, char buffer[], *buff_ind);
 
 /******************** FUNCTIONS *******************/
 
