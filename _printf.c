@@ -37,7 +37,7 @@ int _printf(const char *format, ...)
 		{
 			print_buffer(buffer, &buff_ind);
 			/* handle format specifiers */
-			print = handle_print(format, &n, mylist, buffer, &buff_ind);
+			print = handle_print(format, &n, mylist, buffer);
 
 			if (print == -1)
 				return (-1);
