@@ -1,169 +1,66 @@
-#include <stdarg.h>
 #include "main.h"
-#include <stddef.h>
-#include <string.h>
+
+void print_buffer(char buffer[], int *buff_ind);
 
 /**
- * check_str - Prints a string
- * @str: The string to print
- * @count: The number of characters printed
- * @buffer: The buffer to store characters
- * @buffer_index: The current index in the buffer
- */
-void check_str(char *str, int *count, char *buffer, int *buffer_index)
-{
-	if (!str)
-		str = "(null)";
-	
-	while (*str)
-	{
-		_putchar(*str, buffer, buffer_index);
-		str++;
-		(*count)++;
-	}
-
-}
-/**
- * print_arg2 - A helper function to print args
- * @format: A list of types of arguments passed to the function
- * @args: The arguments to be printed
- * @count: The number of characters printed
- * @buffer: The buffer to store characters
- * @buffer_index: The current index in the buffer
- * @flag: contains the flags
- */
-void print_arg2(const char *format, int *count, va_list args, char *buffer,
-				int *buffer_index, int flag)
-{
-	switch (*format)
-	{
-		case 'x':
-			print_hex(va_arg(args, unsigned int), 0, count, buffer, buffer_index, flag);
-			break;
-		case 'X':
-			print_hex(va_arg(args, unsigned int), 1, count, buffer, buffer_index, flag);
-			break;
-		case 'S':
-			print_str_nonChar(va_arg(args, char *), count, buffer, buffer_index);
-			break;
-		case 'p':
-			print_ptr(va_arg(args, void *), count, buffer, buffer_index);
-			break;
-		case 'o':
-			print_octal(va_arg(args, unsigned int), count, buffer, buffer_index, flag);
-			break;
-		default:
-			_putchar('%', buffer, buffer_index);
-			if (flag == 2 || flag == 4 || flag == 5)
-			{
-				_putchar(' ', buffer, buffer_index);
-				(*count)++;
-			}
-			_putchar(*format, buffer, buffer_index);
-			(*count) += 2;
-			break;
-	}
-}
-/**
- * print_arg - A helper function to print args
- * @format: A list of types of arguments passed to the function
- * @args: The arguments to be printed
- * @count: The number of characters printed
- * @buffer: The buffer to store characters
- * @buffer_index: The current index in the buffer
- * @flag: contains the flags
- */
-void print_arg(const char *format, int *count, va_list args, char *buffer,
-				int *buffer_index, int flag)
-{
-	int num;
-	
-	switch (*format)
-	{
-		case 'c':
-			_putchar(va_arg(args, int), buffer, buffer_index);
-			(*count)++;
-			break;
-		case 's':
-			check_str(va_arg(args, char *), count, buffer, buffer_index);
-			break;
-		case '%':
-			_putchar('%', buffer, buffer_index);
-			(*count)++;
-			break;
-		case 'd':
-		case 'i':
-			if (flag == 6)
-				print_long(va_arg(args, long), count, buffer, buffer_index);
-			else
-			{
-				num = va_arg(args, int);
-				print_number_flag(num, count, buffer, buffer_index, flag);
-				print_number(num, count, buffer, buffer_index, flag);
-			}
-			break;
-		case 'b':
-			print_binary(va_arg(args, unsigned int), count, buffer, buffer_index);
-			break;
-		case 'u':
-			if (flag == 6)
-				print_numlong(va_arg(args, unsigned long), count, buffer, buffer_index);
-			else if (flag == 7)
-				print_numshort(va_arg(args, unsigned int), count, buffer, buffer_index);
-			else
-				print_ui(va_arg(args, unsigned int), count, buffer, buffer_index, flag);
-			break;
-		default:
-			print_arg2(format, count, args, buffer, buffer_index, flag);
-	}
-}
-
-/**
- * _printf - The program produces output according to a format
- * @format: A character string, the format to follow.
- *
- * Return: The number of characters printed or -1 if failure
+ * _printf - Printf function
+ * @format: format.
+ * Return: Printed chars.
  */
 int _printf(const char *format, ...)
 {
-	int count = 0, flag = 0;
-	int buffer_index = 0;
-	char buffer[BUFFER_SIZE];
-	va_list args;
-	
-	if (format == NULL || (strlen(format) <= 2 && format[0] == '%' &&
-				(format[1] == '\0' || format[1] == ' ')))
+	int i, printed = 0, printed_chars = 0;
+	int flags, width, precision, size, buff_ind = 0;
+	va_list list;
+	char buffer[BUFF_SIZE];
+
+	if (format == NULL)
 		return (-1);
-	
-	va_start(args, format);
-	
-	while (*format)
+
+	va_start(list, format);
+
+	for (i = 0; format && format[i] != '\0'; i++)
 	{
-		if (*format != '%')
+		if (format[i] != '%')
 		{
-			_putchar(*format, buffer, &buffer_index);
-			count++;
+			buffer[buff_ind++] = format[i];
+			if (buff_ind == BUFF_SIZE)
+				print_buffer(buffer, &buff_ind);
+			/* write(1, &format[i], 1);*/
+			printed_chars++;
 		}
 		else
 		{
-			format++;
-			flag = check_flags(format);
-			if (flag)
-			{
-				if (flag == 4 || flag == 5)
-					format += 2;
-				else
-					format++;
-			}
-			
-			print_arg(format, &count, args, buffer, &buffer_index, flag);
+			print_buffer(buffer, &buff_ind);
+			flags = get_flags(format, &i);
+			width = get_width(format, &i, list);
+			precision = get_precision(format, &i, list);
+			size = get_size(format, &i);
+			++i;
+			printed = handle_print(format, &i, list, buffer,
+				flags, width, precision, size);
+			if (printed == -1)
+				return (-1);
+			printed_chars += printed;
 		}
-		format++;
 	}
-	if (buffer_index > 0)
-		_write_buffer(buffer, &buffer_index);
-	
-	va_end(args);
-	
-	return (count);
+
+	print_buffer(buffer, &buff_ind);
+
+	va_end(list);
+
+	return (printed_chars);
+}
+
+/**
+ * print_buffer - Prints the contents of the buffer if it exist
+ * @buffer: Array of chars
+ * @buff_ind: Index at which to add next char, represents the length.
+ */
+void print_buffer(char buffer[], int *buff_ind)
+{
+	if (*buff_ind > 0)
+		write(1, &buffer[0], *buff_ind);
+
+	*buff_ind = 0;
 }
